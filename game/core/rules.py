@@ -112,8 +112,8 @@ def get_valid_moves(state: GameState) -> List[Move]:
     # 1. Draw/Recycle moves (always consider stock first)
     if state.stock:
         moves.append(create_draw_move())
-    elif state.waste:
-        # Can recycle if stock is empty but waste has cards
+    elif state.waste and state.passes_through_deck < 3:
+        # Can recycle if stock is empty, waste has cards, and haven't passed through 3 times
         moves.append(create_recycle_move())
 
     # 2. Foundation moves from waste (high priority - progress toward win)
