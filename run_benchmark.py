@@ -8,6 +8,7 @@ This script runs benchmarks on all available solvers and displays results.
 import argparse
 from optimization.solvers.random_solver import RandomSolver
 from optimization.solvers.heuristic_solver import HeuristicSolver
+from optimization.solvers.mcts_solver import MCTSSolver
 from optimization.evaluation.benchmark import Benchmark
 
 
@@ -44,6 +45,7 @@ def main():
     solvers = [
         RandomSolver(seed=42),
         HeuristicSolver(),
+        MCTSSolver(simulations_per_move=100, seed=42),
     ]
 
     # Create benchmark
