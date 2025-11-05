@@ -43,8 +43,9 @@ def show():
                 st.session_state.play_move_history.pop()
                 initialize_game()
                 # Replay moves
+                game = st.session_state.play_game
                 for move in st.session_state.play_move_history:
-                    game.apply_move(move)
+                    game.make_move(move)
                 st.session_state.play_move_count = len(st.session_state.play_move_history)
                 st.rerun()
 
@@ -134,11 +135,12 @@ def show():
                         move_desc = describe_move(move, game)
 
                         if st.button(move_desc, key=f"move_{id(move)}", use_container_width=True):
-                            # Apply the move
-                            game.apply_move(move)
-                            st.session_state.play_move_history.append(move)
-                            st.session_state.play_move_count += 1
-                            st.rerun()
+                            # Make the move
+                            if game.make_move(move):
+                                st.session_state.play_move_count += 1
+                                st.rerun()
+                            else:
+                                st.error("Invalid move!")
 
     # Game statistics in sidebar
     with st.sidebar:
