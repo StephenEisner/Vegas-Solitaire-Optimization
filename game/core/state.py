@@ -25,6 +25,7 @@ class GameState:
         foundations: Four piles building from Ace to King by suit
         score: Current score (Vegas: start at -$52, +$5 per foundation card)
         move_count: Number of moves made so far
+        passes_through_deck: Number of times cycled through the deck (max 3 in Vegas rules)
     """
     stock: List[Card] = field(default_factory=list)
     waste: List[Card] = field(default_factory=list)
@@ -33,6 +34,7 @@ class GameState:
     foundations: Dict[Suit, List[Card]] = field(default_factory=lambda: {suit: [] for suit in Suit})
     score: int = -52  # Vegas entry cost
     move_count: int = 0
+    passes_through_deck: int = 0
 
     def copy(self) -> 'GameState':
         """
@@ -51,7 +53,8 @@ class GameState:
             tableau_hidden=self.tableau_hidden.copy(),
             foundations={suit: cards.copy() for suit, cards in self.foundations.items()},
             score=self.score,
-            move_count=self.move_count
+            move_count=self.move_count,
+            passes_through_deck=self.passes_through_deck
         )
 
     def __hash__(self) -> int:
@@ -125,6 +128,16 @@ class GameState:
             Number of cards in foundations (0-52)
         """
         return sum(len(cards) for cards in self.foundations.values())
+
+    @property
+    def foundation_count(self) -> int:
+        """
+        Property accessor for foundation count.
+
+        Returns:
+            Number of cards in foundations (0-52)
+        """
+        return self.get_foundation_count()
 
     def get_tableau_visible_cards(self, column: int) -> List[Card]:
         """

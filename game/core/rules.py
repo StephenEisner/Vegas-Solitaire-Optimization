@@ -196,6 +196,7 @@ def apply_move(state: GameState, move: Move) -> GameState:
         # Flip waste back to stock
         new_state.stock = new_state.waste[::-1]  # Reverse order
         new_state.waste = []
+        new_state.passes_through_deck += 1
 
     elif move.move_type == MoveType.WASTE_TO_FOUNDATION:
         # Move top waste card to foundation
@@ -255,7 +256,8 @@ def is_valid_move(state: GameState, move: Move) -> bool:
         return len(state.stock) > 0
 
     elif move.move_type == MoveType.RECYCLE:
-        return len(state.stock) == 0 and len(state.waste) > 0
+        # Can only recycle if stock is empty, waste has cards, and haven't passed through deck 3 times yet
+        return len(state.stock) == 0 and len(state.waste) > 0 and state.passes_through_deck < 3
 
     elif move.move_type == MoveType.WASTE_TO_FOUNDATION:
         if not state.waste:
