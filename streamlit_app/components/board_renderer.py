@@ -48,6 +48,13 @@ def render_game_board(game: Game, show_score: bool = True) -> None:
         st.markdown(stock_html, unsafe_allow_html=True)
         st.caption(f"Stock: {len(state.stock)} | Waste: {len(state.waste)} | Pass: {state.passes_through_deck}/3")
 
+        # Show waste pile cards as text list
+        if state.waste:
+            st.markdown("**Waste cards (top 5):**")
+            waste_display = state.waste[-5:] if len(state.waste) >= 5 else state.waste
+            waste_text = " → ".join([str(card) for card in waste_display])
+            st.text(waste_text)
+
     with top_row[2]:
         st.markdown("**Foundations**")
         foundations_html = []

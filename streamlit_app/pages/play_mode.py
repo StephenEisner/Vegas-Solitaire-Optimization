@@ -139,6 +139,8 @@ def show():
                             if game.make_move(move):
                                 st.session_state.play_move_history.append(move)
                                 st.session_state.play_move_count += 1
+                                # Force session state update
+                                st.session_state.play_game = game
                                 st.rerun()
                             else:
                                 st.error("Invalid move!")
