@@ -12,7 +12,8 @@ from game.core.moves import (
     Move, MoveType,
     create_draw_move, create_recycle_move,
     create_waste_to_foundation_move, create_waste_to_tableau_move,
-    create_tableau_to_foundation_move, create_tableau_to_tableau_move
+    create_tableau_to_foundation_move, create_tableau_to_tableau_move,
+    create_foundation_to_tableau_move
 )
 
 
@@ -164,6 +165,18 @@ def get_valid_moves(state: GameState) -> List[Move]:
                         source_col, dest_col, bottom_card, seq_length
                     ))
 
+    # 6. Foundation to tableau moves (low priority - usually not beneficial)
+    # Only consider if there are cards in foundations
+    for suit, cards in state.foundations.items():
+        if cards:
+            top_card = cards[-1]
+            # Try moving to each tableau column
+            for col_idx in range(7):
+                if can_move_to_tableau(top_card, state.tableau[col_idx],
+                                       state.tableau_hidden[col_idx]):
+                    moves.append(create_foundation_to_tableau_move(suit, col_idx, top_card))
+            break  # Only consider one foundation at a time
+
     return moves
 
 
@@ -238,6 +251,25 @@ def apply_move(state: GameState, move: Move) -> GameState:
         if new_state.tableau[move.source] and new_state.tableau_hidden[move.source] > 0:
             new_state.tableau_hidden[move.source] -= 1
 
+    elif move.move_type == MoveType.FOUNDATION_TO_TABLEAU:
+        # Move top card from foundation to tableau
+        # Find which foundation has cards and get the top card
+        card = None
+        source_suit = None
+        for suit, cards in new_state.foundations.items():
+            if cards:
+                card = cards[-1]
+                source_suit = suit
+                break
+
+        if card and source_suit:
+            # Remove from foundation
+            new_state.foundations[source_suit].pop()
+            new_state.score -= 5  # Lose $5 for removing from foundation
+
+            # Add to tableau
+            new_state.tableau[move.destination].append(card)
+
     return new_state
 
 
@@ -297,6 +329,27 @@ def is_valid_move(state: GameState, move: Move) -> bool:
 
         return can_move_to_tableau(
             sequence[0],
+            state.tableau[move.destination],
+            state.tableau_hidden[move.destination]
+        )
+
+    elif move.move_type == MoveType.FOUNDATION_TO_TABLEAU:
+        if move.destination is None:
+            return False
+
+        # Check if any foundation has cards
+        card = None
+        for suit, cards in state.foundations.items():
+            if cards:
+                card = cards[-1]
+                break
+
+        if not card:
+            return False
+
+        # Check if card can be placed on destination tableau column
+        return can_move_to_tableau(
+            card,
             state.tableau[move.destination],
             state.tableau_hidden[move.destination]
         )

@@ -20,6 +20,7 @@ class MoveType(Enum):
     - TABLEAU_TO_TABLEAU: Move sequence from one tableau column to another
     - WASTE_TO_FOUNDATION: Move top waste card to foundation
     - WASTE_TO_TABLEAU: Move top waste card to tableau
+    - FOUNDATION_TO_TABLEAU: Move card from foundation back to tableau
     - DRAW: Draw 3 cards from stock to waste
     - RECYCLE: When stock is empty, flip waste pile back to stock
     """
@@ -27,6 +28,7 @@ class MoveType(Enum):
     TABLEAU_TO_TABLEAU = auto()
     WASTE_TO_FOUNDATION = auto()
     WASTE_TO_TABLEAU = auto()
+    FOUNDATION_TO_TABLEAU = auto()
     DRAW = auto()
     RECYCLE = auto()
 
@@ -248,5 +250,24 @@ def create_tableau_to_tableau_move(source: int, destination: int,
         source=source,
         destination=destination,
         card_count=card_count,
+        card=card
+    )
+
+
+def create_foundation_to_tableau_move(suit, destination: int, card: Card) -> Move:
+    """
+    Create a move from foundation to tableau.
+
+    Args:
+        suit: The suit of the foundation pile
+        destination: Destination tableau column (0-6)
+        card: The card being moved
+
+    Returns:
+        Move representing foundation to tableau
+    """
+    return Move(
+        MoveType.FOUNDATION_TO_TABLEAU,
+        destination=destination,
         card=card
     )

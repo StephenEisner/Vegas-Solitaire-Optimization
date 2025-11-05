@@ -85,6 +85,7 @@ def show():
             MoveType.WASTE_TO_TABLEAU: [],
             MoveType.TABLEAU_TO_FOUNDATION: [],
             MoveType.TABLEAU_TO_TABLEAU: [],
+            MoveType.FOUNDATION_TO_TABLEAU: [],
         }
 
         for move in valid_moves:
@@ -117,6 +118,10 @@ def show():
         if move_groups[MoveType.TABLEAU_TO_TABLEAU]:
             move_tab_names.append("↔️ Tableau→Tableau")
             move_tabs.append(move_groups[MoveType.TABLEAU_TO_TABLEAU])
+
+        if move_groups[MoveType.FOUNDATION_TO_TABLEAU]:
+            move_tab_names.append("⬅️ Foundation→Tableau")
+            move_tabs.append(move_groups[MoveType.FOUNDATION_TO_TABLEAU])
 
         if move_tab_names:
             tabs = st.tabs(move_tab_names)
@@ -187,5 +192,13 @@ def describe_move(move, game):
             else:
                 return f"↔️ {move.num_cards} cards from Column {move.from_position + 1} to Column {move.to_position + 1}"
         return f"↔️ Column {move.from_position + 1} to Column {move.to_position + 1}"
+
+    elif move.move_type == MoveType.FOUNDATION_TO_TABLEAU:
+        # Find which foundation has a card on top
+        for suit, cards in state.foundations.items():
+            if cards:
+                card = cards[-1]
+                return f"⬅️ {card} from Foundation to Column {move.to_position + 1}"
+        return f"⬅️ Foundation to Column {move.to_position + 1}"
 
     return str(move)
