@@ -48,13 +48,6 @@ def render_game_board(game: Game, show_score: bool = True) -> None:
         st.markdown(stock_html, unsafe_allow_html=True)
         st.caption(f"Stock: {len(state.stock)} | Waste: {len(state.waste)} | Pass: {state.passes_through_deck}/3")
 
-        # Show waste pile cards as text list
-        if state.waste:
-            st.markdown("**Waste cards (top 5):**")
-            waste_display = state.waste[-5:] if len(state.waste) >= 5 else state.waste
-            waste_text = " → ".join([str(card) for card in waste_display])
-            st.text(waste_text)
-
     with top_row[2]:
         st.markdown("**Foundations**")
         foundations_html = []
@@ -93,11 +86,20 @@ def render_game_board(game: Game, show_score: bool = True) -> None:
                 column_html = render_card_stack(
                     cards=face_up_cards,
                     face_down_count=face_down_count,
-                    vertical_offset=25
+                    vertical_offset=30  # Increased from 25 to 30 for better visibility
                 )
 
             st.markdown(column_html, unsafe_allow_html=True)
-            st.caption(f"{len(column)} cards")
+
+            # Show card details as text
+            if column:
+                if face_down_count > 0:
+                    st.caption(f"🔒 {face_down_count} face-down")
+                if face_up_cards:
+                    cards_text = " → ".join([str(card) for card in face_up_cards])
+                    st.caption(f"👁️ {cards_text}")
+            else:
+                st.caption("Empty")
 
     # Game status
     st.markdown("---")
