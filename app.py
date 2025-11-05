@@ -89,7 +89,7 @@ def main():
     page = st.sidebar.radio(
         "Navigate",
         ["🏠 Home", "🎮 Play Mode", "👀 Watch Mode", "📊 Benchmark", "📈 Analysis",
-         "🎰 Multi-Deal Mode", "🔬 Empirical Analysis"],
+         "🎰 Multi-Deal Mode", "🔬 Empirical Analysis", "🧠 Learned Evaluation"],
         label_visibility="collapsed"
     )
 
@@ -103,6 +103,7 @@ def main():
     - 🧬 Q-Learning & TD Learning
     - 🎰 Multi-Deal Optimization
     - 🔬 Empirical Evaluation
+    - 🧠 Machine-Learned Functions
     """)
 
     # Route to appropriate page
@@ -126,6 +127,9 @@ def main():
     elif page == "🔬 Empirical Analysis":
         from streamlit_app.pages import empirical_analysis
         empirical_analysis.render_empirical_analysis()
+    elif page == "🧠 Learned Evaluation":
+        from streamlit_app.pages import learned_evaluation
+        learned_evaluation.render_learned_evaluation()
 
 
 def show_home():
@@ -197,6 +201,32 @@ def show_home():
         - Bankroll management
         - Reroll optimization
         - Secretary problem
+        """)
+
+    col7, col8, col9 = st.columns(3)
+
+    with col7:
+        st.markdown("""
+        #### 🔬 Empirical Evaluation
+        - Data-driven deal quality
+        - Solver performance measurement
+        - Feature correlation analysis
+        """)
+
+    with col8:
+        st.markdown("""
+        #### 🧠 Machine-Generated Eval
+        - Neural network training
+        - Automatic pattern discovery
+        - Self-play learning
+        """)
+
+    with col9:
+        st.markdown("""
+        #### 🚀 Coming Soon
+        - Deep Q-Networks (DQN)
+        - Policy Gradient methods
+        - AlphaZero-style training
         """)
 
     st.markdown("---")
