@@ -173,32 +173,32 @@ def describe_move(move, game):
     elif move.move_type == MoveType.WASTE_TO_TABLEAU:
         card = state.waste[-1] if state.waste else None
         if card:
-            return f"📋 {card} to Tableau Column {move.to_position + 1}"
-        return f"📋 Waste to Tableau Column {move.to_position + 1}"
+            return f"📋 {card} to Tableau Column {move.destination + 1}"
+        return f"📋 Waste to Tableau Column {move.destination + 1}"
 
     elif move.move_type == MoveType.TABLEAU_TO_FOUNDATION:
-        column = state.tableau[move.from_position]
+        column = state.tableau[move.source]
         if column:
             card = column[-1]  # Cards are just Card objects, not tuples
-            return f"💎 {card} from Column {move.from_position + 1} to Foundation"
-        return f"💎 Column {move.from_position + 1} to Foundation"
+            return f"💎 {card} from Column {move.source + 1} to Foundation"
+        return f"💎 Column {move.source + 1} to Foundation"
 
     elif move.move_type == MoveType.TABLEAU_TO_TABLEAU:
-        column = state.tableau[move.from_position]
-        if column and move.num_cards:
-            if move.num_cards == 1:
+        column = state.tableau[move.source]
+        if column and move.card_count:
+            if move.card_count == 1:
                 card = column[-1]  # Cards are just Card objects, not tuples
-                return f"↔️ {card} from Column {move.from_position + 1} to Column {move.to_position + 1}"
+                return f"↔️ {card} from Column {move.source + 1} to Column {move.destination + 1}"
             else:
-                return f"↔️ {move.num_cards} cards from Column {move.from_position + 1} to Column {move.to_position + 1}"
-        return f"↔️ Column {move.from_position + 1} to Column {move.to_position + 1}"
+                return f"↔️ {move.card_count} cards from Column {move.source + 1} to Column {move.destination + 1}"
+        return f"↔️ Column {move.source + 1} to Column {move.destination + 1}"
 
     elif move.move_type == MoveType.FOUNDATION_TO_TABLEAU:
         # Find which foundation has a card on top
         for suit, cards in state.foundations.items():
             if cards:
                 card = cards[-1]
-                return f"⬅️ {card} from Foundation to Column {move.to_position + 1}"
-        return f"⬅️ Foundation to Column {move.to_position + 1}"
+                return f"⬅️ {card} from Foundation to Column {move.destination + 1}"
+        return f"⬅️ Foundation to Column {move.destination + 1}"
 
     return str(move)
