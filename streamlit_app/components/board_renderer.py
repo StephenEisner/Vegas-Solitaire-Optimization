@@ -72,16 +72,11 @@ def render_game_board(game: Game, show_score: bool = True) -> None:
     for col_idx, col in enumerate(tableau_cols):
         with col:
             column = state.tableau[col_idx]
+            hidden_count = state.tableau_hidden[col_idx]
 
-            # Count face-down cards
-            face_down_count = 0
-            face_up_cards = []
-
-            for i, (card, is_face_up) in enumerate(column):
-                if is_face_up:
-                    face_up_cards = [c for c, _ in column[i:]]
-                    break
-                face_down_count += 1
+            # Split into face-down and face-up cards
+            face_down_count = hidden_count
+            face_up_cards = column[hidden_count:] if hidden_count < len(column) else []
 
             # Render column
             st.markdown(f"**Col {col_idx + 1}**")
@@ -132,8 +127,8 @@ def render_compact_board(game: Game) -> str:
     # Tableau
     tableau_info = []
     for i, column in enumerate(state.tableau):
-        face_up = sum(1 for _, is_up in column if is_up)
-        face_down = len(column) - face_up
+        face_down = state.tableau_hidden[i]
+        face_up = len(column) - face_down
         tableau_info.append(f"C{i+1}: {face_down}↓{face_up}↑")
 
     lines.append("Tableau: " + " | ".join(tableau_info))
