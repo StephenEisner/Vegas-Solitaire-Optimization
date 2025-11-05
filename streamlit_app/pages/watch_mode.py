@@ -12,7 +12,9 @@ from streamlit_app.components import render_game_board
 def initialize_watch_game():
     """Initialize a new game for watching."""
     seed = st.session_state.get('watch_seed', 42)
-    st.session_state.watch_game = Game(seed=seed)
+    game = Game(seed=seed)
+    game.deal()  # Deal the cards!
+    st.session_state.watch_game = game
     st.session_state.watch_move_history = []
     st.session_state.watch_is_playing = False
     st.session_state.watch_game_over = False

@@ -9,7 +9,9 @@ from streamlit_app.components import render_game_board
 def initialize_game():
     """Initialize a new game in session state."""
     seed = st.session_state.get('play_seed', 42)
-    st.session_state.play_game = Game(seed=seed)
+    game = Game(seed=seed)
+    game.deal()  # Deal the cards!
+    st.session_state.play_game = game
     st.session_state.play_move_history = []
     st.session_state.play_move_count = 0
 
