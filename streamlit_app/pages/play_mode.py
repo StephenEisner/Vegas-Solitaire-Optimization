@@ -137,6 +137,7 @@ def show():
                         if st.button(move_desc, key=f"move_{id(move)}", use_container_width=True):
                             # Make the move
                             if game.make_move(move):
+                                st.session_state.play_move_history.append(move)
                                 st.session_state.play_move_count += 1
                                 st.rerun()
                             else:
@@ -154,6 +155,23 @@ def show():
         # Progress bar
         progress = game.state.foundation_count / 52
         st.progress(progress, text=f"Progress: {game.state.foundation_count}/52 cards")
+
+        # Show top waste cards
+        if game.state.waste:
+            st.markdown("### 🗑️ Waste Pile (Top 3)")
+            waste_cards = game.state.waste[-3:] if len(game.state.waste) >= 3 else game.state.waste
+            for i, card in enumerate(reversed(waste_cards)):
+                position = len(game.state.waste) - i
+                st.text(f"{position}. {card}")
+
+        # Show move history
+        if st.session_state.play_move_history:
+            st.markdown("### 📜 Recent Moves")
+            recent = st.session_state.play_move_history[-5:]
+            for i, move in enumerate(reversed(recent)):
+                move_num = len(st.session_state.play_move_history) - i
+                move_desc_short = move.move_type.name.replace('_', ' ').title()
+                st.text(f"{move_num}. {move_desc_short}")
 
 
 def describe_move(move, game):
