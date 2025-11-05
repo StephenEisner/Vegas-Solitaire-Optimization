@@ -1,0 +1,17 @@
+{
+  "solver_name": "Random",
+  "test_set": "standard_100_games",
+  "timestamp": 1762362500.7362597,
+  "statistics": {
+    "games_played": 100,
+    "games_won": 3,
+    "win_rate": 3.0,
+    "average_score": -23.45,
+    "average_moves": 147.44,
+    "average_time": 0.057331125736236575,
+    "average_foundation_cards": 5.71,
+    "total_time": 5.733112573623657,
+    "best_score": 208,
+    "worst_score": -52
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "solver_name": "Heuristic",
+  "test_set": "standard_100_games",
+  "timestamp": 1762362503.4318666,
+  "statistics": {
+    "games_played": 100,
+    "games_won": 0,
+    "win_rate": 0.0,
+    "average_score": -47.65,
+    "average_moves": 132.01,
+    "average_time": 0.026796245574951173,
+    "average_foundation_cards": 0.87,
+    "total_time": 2.679624557495117,
+    "best_score": -27,
+    "worst_score": -52
+  }
+}
