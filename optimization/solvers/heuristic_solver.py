@@ -9,6 +9,7 @@ from typing import Optional, List, Tuple
 from game.core.game import Game
 from game.core.moves import Move, MoveType
 from game.core.state import GameState
+from game.core.rules import apply_move
 from optimization.solvers.base import Solver
 
 
@@ -31,16 +32,40 @@ class HeuristicSolver(Solver):
         """Initialize the heuristic solver."""
         super().__init__(name="Heuristic")
 
-        # Heuristic weights (tuned through experimentation)
+        # Cycle detection
+        self.state_history = []
+        self.max_history = 10  # Track last N states
+
+        # Improved heuristic weights
         self.weights = {
+            # Direct progress (highest priority)
             'foundation_move': 100,           # Always prefer foundation
+            'foundation_ace': 20,             # Extra bonus for Aces
+
+            # Information gain
             'reveals_hidden_card': 50,        # Very valuable
+            'reveals_from_large_stack': 10,   # Bonus for big stacks
+
+            # Space management
             'empties_column': 80,             # Creates space for Kings
+            'king_to_empty': 50,              # Only use empty for Kings
+            'non_king_to_empty': -30,         # Penalty for wasting space
+
+            # Sequencing
+            'sequence_length': 3,             # Longer sequences = better (only when revealing!)
             'creates_sequence': 10,           # Building sequences is good
+
+            # Waste management
             'moves_from_waste': 15,           # Clear waste pile
-            'tableau_to_empty_column': 60,    # Use empty columns wisely
-            'sequence_length': 3,             # Longer sequences = better
-            'draw_move': 5,                   # Neutral, but necessary
+            'waste_blocks_foundation': 25,    # Higher if waste card blocks progress
+
+            # Movement types
+            'draw_move': 10,                  # Encourage drawing to see new cards
+            'recycle_penalty': -10,           # Avoid recycling if possible
+
+            # Penalties
+            'tableau_shuffle_no_reveal': -40, # Heavy penalty for non-progressive moves
+            'foundation_to_tableau': -50,     # Usually bad to move back
         }
 
     def choose_move(self, game: Game) -> Optional[Move]:
@@ -67,12 +92,30 @@ class HeuristicSolver(Solver):
         # Sort by score (descending)
         scored_moves.sort(key=lambda x: x[1], reverse=True)
 
-        # Return best move
-        return scored_moves[0][0]
+        # Filter out moves that create cycles
+        non_cycling_moves = []
+        for move, score in scored_moves:
+            # Simulate the move
+            next_state = apply_move(game.state, move)
+
+            # Check if this state was recently seen
+            if not self._is_recent_state(next_state):
+                non_cycling_moves.append((move, score))
+
+        # Update state history with current state
+        self._add_to_history(game.state)
+
+        # If all moves cycle, take the best one anyway (break the cycle)
+        if not non_cycling_moves:
+            # Take best move but penalize it
+            return scored_moves[0][0]
+
+        # Return best non-cycling move
+        return non_cycling_moves[0][0]
 
     def evaluate_move(self, move: Move, state: GameState) -> float:
         """
-        Evaluate a move using heuristics.
+        Evaluate a move using improved heuristics.
 
         Args:
             move: Move to evaluate
@@ -89,43 +132,67 @@ class HeuristicSolver(Solver):
 
             # Extra bonus for Aces (start foundations)
             if move.card and move.card.rank.numeric_value == 1:
-                score += 20
+                score += self.weights['foundation_ace']
 
-        # 2. Moves that reveal hidden cards
+        # 2. Foundation to Tableau (usually bad)
+        if move.move_type == MoveType.FOUNDATION_TO_TABLEAU:
+            score += self.weights['foundation_to_tableau']
+
+        # 3. Moves that reveal hidden cards
         if self._reveals_card(move, state):
             score += self.weights['reveals_hidden_card']
 
-        # 3. Moves that empty a column (very valuable)
+            # Bonus for revealing from large stacks
+            if move.source is not None:
+                hidden_count = state.tableau_hidden[move.source]
+                if hidden_count > 3:
+                    score += self.weights['reveals_from_large_stack']
+
+        # 4. Moves that empty a column (very valuable)
         if self._empties_column(move, state):
             score += self.weights['empties_column']
 
-        # 4. Moving from waste to tableau clears waste
+        # 5. Moving from waste to tableau
         if move.move_type == MoveType.WASTE_TO_TABLEAU:
             score += self.weights['moves_from_waste']
 
-            # Bonus for Kings to empty columns
-            if move.card and move.card.rank.numeric_value == 13:
-                if move.destination is not None:
-                    if len(state.tableau[move.destination]) == 0:
-                        score += self.weights['tableau_to_empty_column']
+            # Check if move is to empty column
+            if move.destination is not None and len(state.tableau[move.destination]) == 0:
+                # Only Kings should go to empty columns
+                if move.card and move.card.rank.numeric_value == 13:
+                    score += self.weights['king_to_empty']
+                else:
+                    score += self.weights['non_king_to_empty']
 
-        # 5. Tableau to tableau moves
+        # 6. Tableau to tableau moves
         if move.move_type == MoveType.TABLEAU_TO_TABLEAU:
-            # Moving to empty column
-            if move.destination is not None:
-                if len(state.tableau[move.destination]) == 0:
-                    score += self.weights['tableau_to_empty_column']
+            # Check if moving to empty column
+            if move.destination is not None and len(state.tableau[move.destination]) == 0:
+                # Only Kings should go to empty columns
+                if move.card and move.card.rank.numeric_value == 13:
+                    score += self.weights['king_to_empty']
+                else:
+                    score += self.weights['non_king_to_empty']
+            else:
+                # Regular tableau move
+                reveals = self._reveals_card(move, state)
 
-            # Longer sequences are better
-            score += move.card_count * self.weights['sequence_length']
+                if reveals:
+                    # Only give sequence bonus if revealing a card
+                    score += move.card_count * self.weights['sequence_length']
+                else:
+                    # Heavy penalty for moving cards without revealing
+                    # Bigger penalty for moving more cards (wasteful shuffling)
+                    score += self.weights['tableau_shuffle_no_reveal']
+                    score -= move.card_count * 5  # Strong penalty per card moved without purpose
 
-        # 6. Draw moves are neutral but necessary
+        # 7. Draw moves are neutral but necessary
         if move.move_type == MoveType.DRAW:
             score += self.weights['draw_move']
 
-        # 7. Recycle is last resort
+        # 8. Recycle penalty
         if move.move_type == MoveType.RECYCLE:
-            score -= 10  # Slight penalty
+            score += self.weights['recycle_penalty']
 
         return score
 
@@ -185,3 +252,30 @@ class HeuristicSolver(Solver):
 
         # Moving all visible cards from a column with no hidden cards empties it
         return (len(visible_cards) == move.card_count and hidden_count == 0)
+
+    def _is_recent_state(self, state: GameState) -> bool:
+        """
+        Check if a state was recently seen (cycle detection).
+
+        Args:
+            state: State to check
+
+        Returns:
+            True if state was in recent history
+        """
+        state_hash = hash(state)
+        return state_hash in self.state_history
+
+    def _add_to_history(self, state: GameState) -> None:
+        """
+        Add a state to the history.
+
+        Args:
+            state: State to add
+        """
+        state_hash = hash(state)
+        self.state_history.append(state_hash)
+
+        # Keep only last N states
+        if len(self.state_history) > self.max_history:
+            self.state_history.pop(0)

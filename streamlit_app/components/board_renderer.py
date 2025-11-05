@@ -86,11 +86,20 @@ def render_game_board(game: Game, show_score: bool = True) -> None:
                 column_html = render_card_stack(
                     cards=face_up_cards,
                     face_down_count=face_down_count,
-                    vertical_offset=25
+                    vertical_offset=30  # Increased from 25 to 30 for better visibility
                 )
 
             st.markdown(column_html, unsafe_allow_html=True)
-            st.caption(f"{len(column)} cards")
+
+            # Show card details as text
+            if column:
+                if face_down_count > 0:
+                    st.caption(f"🔒 {face_down_count} face-down")
+                if face_up_cards:
+                    cards_text = " → ".join([str(card) for card in face_up_cards])
+                    st.caption(f"👁️ {cards_text}")
+            else:
+                st.caption("Empty")
 
     # Game status
     st.markdown("---")
