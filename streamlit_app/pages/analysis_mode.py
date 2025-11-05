@@ -58,6 +58,7 @@ def show_game_analysis():
 
             for solver_name, solver in solvers:
                 game = Game(seed=seed)
+                game.deal()  # Deal the cards!
                 moves_made = 0
 
                 while moves_made < max_moves:
