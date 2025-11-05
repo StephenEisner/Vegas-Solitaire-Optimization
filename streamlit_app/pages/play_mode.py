@@ -80,11 +80,11 @@ def show():
         # Group moves by type
         move_groups = {
             MoveType.DRAW: [],
+            MoveType.RECYCLE: [],
             MoveType.WASTE_TO_FOUNDATION: [],
             MoveType.WASTE_TO_TABLEAU: [],
             MoveType.TABLEAU_TO_FOUNDATION: [],
             MoveType.TABLEAU_TO_TABLEAU: [],
-            MoveType.FOUNDATION_TO_TABLEAU: []
         }
 
         for move in valid_moves:
@@ -97,6 +97,10 @@ def show():
         if move_groups[MoveType.DRAW]:
             move_tab_names.append("📤 Draw")
             move_tabs.append(move_groups[MoveType.DRAW])
+
+        if move_groups[MoveType.RECYCLE]:
+            move_tab_names.append("🔄 Recycle")
+            move_tabs.append(move_groups[MoveType.RECYCLE])
 
         if move_groups[MoveType.WASTE_TO_FOUNDATION]:
             move_tab_names.append("💰 Waste→Foundation")
@@ -113,10 +117,6 @@ def show():
         if move_groups[MoveType.TABLEAU_TO_TABLEAU]:
             move_tab_names.append("↔️ Tableau→Tableau")
             move_tabs.append(move_groups[MoveType.TABLEAU_TO_TABLEAU])
-
-        if move_groups[MoveType.FOUNDATION_TO_TABLEAU]:
-            move_tab_names.append("⬅️ Foundation→Tableau")
-            move_tabs.append(move_groups[MoveType.FOUNDATION_TO_TABLEAU])
 
         if move_tab_names:
             tabs = st.tabs(move_tab_names)
@@ -156,6 +156,9 @@ def describe_move(move, game):
     if move.move_type == MoveType.DRAW:
         return "📤 Draw 3 cards from stock"
 
+    elif move.move_type == MoveType.RECYCLE:
+        return "🔄 Recycle waste back to stock"
+
     elif move.move_type == MoveType.WASTE_TO_FOUNDATION:
         card = state.waste[-1] if state.waste else None
         if card:
@@ -171,7 +174,7 @@ def describe_move(move, game):
     elif move.move_type == MoveType.TABLEAU_TO_FOUNDATION:
         column = state.tableau[move.from_position]
         if column:
-            card = column[-1][0]
+            card = column[-1]  # Cards are just Card objects, not tuples
             return f"💎 {card} from Column {move.from_position + 1} to Foundation"
         return f"💎 Column {move.from_position + 1} to Foundation"
 
@@ -179,15 +182,10 @@ def describe_move(move, game):
         column = state.tableau[move.from_position]
         if column and move.num_cards:
             if move.num_cards == 1:
-                card = column[-1][0]
+                card = column[-1]  # Cards are just Card objects, not tuples
                 return f"↔️ {card} from Column {move.from_position + 1} to Column {move.to_position + 1}"
             else:
                 return f"↔️ {move.num_cards} cards from Column {move.from_position + 1} to Column {move.to_position + 1}"
         return f"↔️ Column {move.from_position + 1} to Column {move.to_position + 1}"
-
-    elif move.move_type == MoveType.FOUNDATION_TO_TABLEAU:
-        if move.from_position is not None:
-            return f"⬅️ Foundation to Column {move.to_position + 1}"
-        return f"⬅️ Foundation to Tableau Column {move.to_position + 1}"
 
     return str(move)
