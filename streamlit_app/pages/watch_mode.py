@@ -110,9 +110,11 @@ def show():
                     st.session_state.watch_game_over = True
                     break
 
-                game.apply_move(move)
-                st.session_state.watch_move_history.append(move)
-                moves_made += 1
+                if game.make_move(move):
+                    moves_made += 1
+                else:
+                    st.session_state.watch_game_over = True
+                    break
 
                 # Update every 10 moves
                 if moves_made % 10 == 0:
@@ -190,7 +192,5 @@ def make_solver_move(game, solver_name):
     if not move:
         return False
 
-    game.apply_move(move)
-    st.session_state.watch_move_history.append(move)
-
-    return True
+    success = game.make_move(move)
+    return success

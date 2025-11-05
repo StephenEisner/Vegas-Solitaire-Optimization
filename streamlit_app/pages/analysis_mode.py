@@ -70,8 +70,10 @@ def show_game_analysis():
                     if not move:
                         break
 
-                    game.apply_move(move)
-                    moves_made += 1
+                    if game.make_move(move):
+                        moves_made += 1
+                    else:
+                        break
 
                 results.append({
                     "Solver": solver_name,
