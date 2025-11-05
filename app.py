@@ -88,7 +88,8 @@ def main():
 
     page = st.sidebar.radio(
         "Navigate",
-        ["🏠 Home", "🎮 Play Mode", "👀 Watch Mode", "📊 Benchmark", "📈 Analysis"],
+        ["🏠 Home", "🎮 Play Mode", "👀 Watch Mode", "📊 Benchmark", "📈 Analysis",
+         "🎰 Multi-Deal Mode", "🔬 Empirical Analysis"],
         label_visibility="collapsed"
     )
 
@@ -99,7 +100,9 @@ def main():
     - 🎲 Random Search
     - 🧠 Heuristic Strategy
     - 🌲 Monte Carlo Tree Search
-    - 🤖 Deep RL (coming soon)
+    - 🧬 Q-Learning & TD Learning
+    - 🎰 Multi-Deal Optimization
+    - 🔬 Empirical Evaluation
     """)
 
     # Route to appropriate page
@@ -117,6 +120,12 @@ def main():
     elif page == "📈 Analysis":
         from streamlit_app.pages import analysis_mode
         analysis_mode.show()
+    elif page == "🎰 Multi-Deal Mode":
+        from streamlit_app.pages import multideal_mode
+        multideal_mode.render_multideal_mode()
+    elif page == "🔬 Empirical Analysis":
+        from streamlit_app.pages import empirical_analysis
+        empirical_analysis.render_empirical_analysis()
 
 
 def show_home():
@@ -162,6 +171,32 @@ def show_home():
         - Tree search with UCB1
         - 1000 simulations/move
         - Expected 30-40% wins
+        """)
+
+    col4, col5, col6 = st.columns(3)
+
+    with col4:
+        st.markdown("""
+        #### 🧬 Q-Learning
+        - Learns action-values Q(s,a)
+        - Off-policy RL algorithm
+        - Improves with training
+        """)
+
+    with col5:
+        st.markdown("""
+        #### 📊 TD Learning
+        - Learns state values V(s)
+        - Eligibility traces (TD-λ)
+        - Bootstrapped learning
+        """)
+
+    with col6:
+        st.markdown("""
+        #### 🎰 Multi-Deal Mode
+        - Bankroll management
+        - Reroll optimization
+        - Secretary problem
         """)
 
     st.markdown("---")
